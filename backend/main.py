@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import httpx
 import os
 from dotenv import load_dotenv
-
+import base64
 load_dotenv()
 
 GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -72,7 +72,6 @@ async def get_userinfo(request: Request):
             "name": name,
         }
 
-
 @app.post('/getemails')
 async def get_emails(request: Request):
     data = await request.json()
@@ -83,7 +82,7 @@ async def get_emails(request: Request):
 
     async with httpx.AsyncClient() as client:
         email_res = await client.get(
-            f"{GMAIL_API_BASE}/users/me/messages?maxResults={count}",
+            f"https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults={count}",
             headers={"Authorization": f"Bearer {access_token}"}
         )
 
@@ -91,19 +90,37 @@ async def get_emails(request: Request):
 
         for message in messages:
             message_id = message["id"]
+
             message_res = await client.get(
-                f"{GMAIL_API_BASE}/users/me/messages/{message_id}?format=metadata&metadataHeaders=Subject",
+                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}?format=full",
                 headers={"Authorization": f"Bearer {access_token}"}
             )
+
             message_json = message_res.json()
-            headers = message_json.get("payload", {}).get("headers", [])
+            payload = message_json.get("payload", {})
+            headers = payload.get("headers", [])
             subject = next((h["value"] for h in headers if h["name"] == "Subject"), None)
             snippet = message_json.get("snippet")
+
+            # Extract body (handling plain text inside multipart or direct body)
+            body = ""
+            if "parts" in payload:
+                for part in payload["parts"]:
+                    if part.get("mimeType") == "text/plain":
+                        body_data = part.get("body", {}).get("data")
+                        if body_data:
+                            body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
+                            break
+            else:
+                body_data = payload.get("body", {}).get("data")
+                if body_data:
+                    body = base64.urlsafe_b64decode(body_data.encode("utf-8")).decode("utf-8")
+
             emails.append({
+                "id": message_id,
                 "subject": subject,
-                "snippet": snippet
+                "snippet": snippet,
+                "body": body
             })
 
-    return {
-        "emails": emails
-    }
+    return {"emails": emails}

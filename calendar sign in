@@ -1,0 +1,36 @@
+import React from 'react';
+import { GoogleOAuthProvider, useGoogleLogin } from '@react-oauth/google';
+
+const clientId = "683643508718-7c62baq5d63k4lb9cboostggjqit3lal.apps.googleusercontent.com";
+
+const Login = () => {
+  const login = useGoogleLogin({
+    flow: 'auth-code', // <-- this gives you an authorization code
+    scope: 'https://www.googleapis.com/auth/calendar',
+    onSuccess: (codeResponse) => {
+      console.log('Authorization Code:', codeResponse.code);
+      // Send codeResponse.code to your backend server to exchange for access token
+    },
+    onError: (error) => {
+      console.error('Login Failed:', error);
+    },
+  });
+
+  return (
+    <div className="App">
+      <h1 className="heading">Google Calendar</h1>
+      <button onClick={() => login()}>
+        Sign in with Google
+      </button>
+    </div>
+  );
+};
+
+const App = () => (
+  <GoogleOAuthProvider clientId={clientId}>
+    <Login />
+  </GoogleOAuthProvider>
+);
+
+export default App;
+

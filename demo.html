@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Calendar Deadline Reminder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Basic styling for message boxes */
+        .message {
+            padding: 0.75rem 1rem;
+            margin-top: 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+        }
+        .message-success {
+            background-color: #d1fae5; /* bg-green-100 */
+            color: #065f46; /* text-green-800 */
+            border: 1px solid #6ee7b7; /* border-green-300 */
+        }
+        .message-error {
+            background-color: #fee2e2; /* bg-red-100 */
+            color: #991b1b; /* text-red-800 */
+            border: 1px solid #fca5a5; /* border-red-300 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Create Calendar Reminder</h2>
+
+        <form id="reminder-form">
+            <div class="mb-4">
+                <label for="deadline-name" class="block text-sm font-medium text-gray-700 mb-1">Deadline Name:</label>
+                <input type="text" id="deadline-name" name="deadline-name" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+                       </div>
+
+            <div class="mb-6">
+                <label for="deadline-date" class="block text-sm font-medium text-gray-700 mb-1">Deadline Date:</label>
+                <input type="date" id="deadline-date" name="deadline-date" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out">
+                       </div>
+
+            <button type="submit"
+                    class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out font-medium">
+                Create Reminder
+            </button>
+            </form>
+
+        <div id="message-area" class="mt-4"></div>
+         </div>
+
+    <script>
+        // Get references to the form and message area elements
+        const form = document.getElementById('reminder-form');
+        const deadlineNameInput = document.getElementById('deadline-name');
+        const deadlineDateInput = document.getElementById('deadline-date');
+        const messageArea = document.getElementById('message-area');
+
+        // Add event listener for form submission
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Clear previous messages
+            messageArea.innerHTML = '';
+            messageArea.className = 'message-area mt-4'; // Reset classes
+
+            // Get the values from the input fields
+            const name = deadlineNameInput.value.trim();
+            const date = deadlineDateInput.value;
+
+            // Basic validation
+            if (!name || !date) {
+                displayMessage('Please fill in both the name and the date.', 'error');
+                return; // Stop execution if validation fails
+            }
+
+            // --- Google Calendar API Integration Placeholder ---
+            // In a real application, you would send 'name' and 'date'
+            // to your backend server here. The server would then use
+            // the Google Calendar API (with proper authentication)
+            // to create the event/reminder.
+
+            console.log('Deadline Name:', name);
+            console.log('Deadline Date:', date);
+
+            // Simulate API call success
+            // Replace this with your actual backend call
+            pretendToSendToCalendar(name, date)
+                .then(response => {
+                    displayMessage(`Reminder "${response.name}" for ${response.date} would be created (simulation).`, 'success');
+                    // Optionally clear the form
+                    // form.reset();
+                })
+                .catch(error => {
+                    displayMessage(`Failed to create reminder: ${error}`, 'error');
+                });
+
+            // --- End Placeholder ---
+        });
+
+        /**
+         * Displays a message to the user in the message area.
+         * @param {string} text - The message text to display.
+         * @param {'success' | 'error'} type - The type of message (for styling).
+         */
+        function displayMessage(text, type) {
+            messageArea.innerHTML = ''; // Clear previous messages
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = text;
+            messageDiv.className = `message message-${type}`; // Apply base and type-specific styles
+            messageArea.appendChild(messageDiv);
+        }
+
+        /**
+         * Placeholder function simulating a backend call to Google Calendar.
+         * In a real app, this would be an asynchronous fetch request to your server.
+         * @param {string} name - The name of the deadline.
+         * @param {string} date - The date of the deadline (YYYY-MM-DD).
+         * @returns {Promise} - A promise that resolves or rejects.
+         */
+        function pretendToSendToCalendar(name, date) {
+            console.log(`Simulating sending "${name}" for date ${date} to backend...`);
+            // Simulate network delay
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    // Simulate a successful response
+                    // In a real scenario, the backend would confirm event creation.
+                     if (name && date) { // Basic check
+                         resolve({ success: true, name: name, date: date });
+                     } else {
+                         reject("Missing data in simulation.");
+                     }
+                }, 1000); // 1 second delay
+            });
+        }
+    </script>
+
+</body>
+</html>
